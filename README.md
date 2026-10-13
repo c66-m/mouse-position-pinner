@@ -1,12 +1,39 @@
+<div align="center">
+
 # 鼠标位置定位器
 
-全局鼠标坐标置顶小窗（原名 CoordPin）：一个约 190×64 的无边框置顶小窗，实时显示鼠标全局坐标（约 30ms 刷新），支持热键一键复制坐标、拖动记忆位置。基于 **Tauri 2 + Vite + React + TypeScript + Rust** 构建，全平台（Windows / macOS / Linux）无干扰常驻。
+**实时显示鼠标全局坐标的置顶小窗，按 F2 一键复制到剪贴板。**
+
+![Tauri](https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-stable-000000?logo=rust&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-52b345)
+![Version](https://img.shields.io/badge/version-0.1.0-orange)
+
+</div>
+
+---
+
+一个约 **190×64** 的无边框、透明、置顶小窗，常驻屏幕角落，以约 30ms 的频率实时显示鼠标全局坐标。按 **F2** 把当前坐标以 `1234, 567` 的形式写入剪贴板，粘贴即用。基于 Tauri 2 构建，安装包轻量（约 8 MB），内存占用极低，不干扰正常操作。
+
+> 原名 CoordPin，现更名为「鼠标位置定位器」。
+
+## 快速开始
+
+| 你想… | 怎么做 |
+| --- | --- |
+| 看鼠标当前在哪 | 小窗常显 `X: 1234  Y: 567`，跟随鼠标实时刷新 |
+| 复制当前坐标 | 按 **F2**（可在设置里改成任意热键），坐标即写入剪贴板 |
+| 拖动小窗到别处 | 直接按住小窗拖，位置下次打开自动恢复 |
+| 修改热键 / 关闭置顶 | 鼠标悬停小窗 → 右上角点 **⚙** → 改完点「完成」 |
+| 退出 | 悬停小窗 → 右上角点 **×** |
 
 ## 功能
 
 | 功能 | 说明 |
 | --- | --- |
-| 实时坐标 | 窗口常显 `X: 1234  Y: 567`，约 30ms 刷新一次；跨多显示器使用**虚拟屏坐标**（与 ShadowClicker 脚本读取 `GetCursorPos` 的口径一致，主屏左上角为 (0,0)，左侧/上方副屏坐标为负值） |
+| 实时坐标 | 窗口常显 `X: 1234  Y: 567`，约 30ms 刷新一次；跨多显示器使用**虚拟屏坐标**（主屏左上角为 (0,0)，左侧/上方副屏坐标为负值） |
 | 热键复制 | 默认 **F2**（可在设置中修改），按下即把当前坐标以纯文本 `1234, 567` 写入剪贴板，窗口短暂显示「已复制 ✓」 |
 | 可拖拽 | 按住窗口任意位置拖动；位置自动记忆，下次打开还在原处 |
 | 小控制点 | 鼠标悬停时右上角露出 ⚙ 设置、× 退出两个小按钮 |
@@ -14,10 +41,14 @@
 
 明确不做：颜色取色、放大镜、开机自启、托盘图标、多副本。
 
+## 为什么需要它
+
+在做 UI 布局、游戏脚本、自动化测试、设计稿还原时，经常需要反复确认「鼠标现在停在哪个像素」。系统自带的取色器不常驻、截图工具要手动触发、在线坐标测试仪要切浏览器——这个小窗就是常驻在屏幕角落的「坐标读数器」，按一下热键就把坐标塞进剪贴板，直接粘到代码、文档或对话框里。
+
 ## 技术要点
 
-- **前端**：Vite + React + TS；夜间深色小面板（ShadowClicker 风格）。坐标轮询走 `invoke('get_cursor_pos')`；`copy-done` 事件驱动「已复制 ✓」反馈；设置弹层打开时窗口自动展开为 230×150，关闭恢复 190×64。
-- **后端**：Rust 命令 `get_cursor_pos`（`GetCursorPos` 虚拟屏坐标）+ `tauri-plugin-global-shortcut`（可注册/注销/改热键）+ `tauri-plugin-clipboard-manager`（剪贴板）+ JSON 设置读写（写临时文件 + 原子重命名）。
+- **前端**：Vite + React + TS；夜间深色小面板。坐标轮询走 `invoke('get_cursor_pos')`；`copy-done` 事件驱动「已复制 ✓」反馈；设置弹层打开时窗口自动展开为 230×150，关闭恢复 190×64。
+- **后端**：Rust 命令 `get_cursor_pos`（`GetCursorPos` 虚拟屏坐标）+ `tauri-plugin-global-shortcut`（可注册/注销/改热键）+ `tauri-plugin-clipboard-manager`（剪贴板）+ JSON 设置读写（写临时文件 + 原子重命名，防止崩溃损坏配置）。
 - **窗口**：无边框、透明背景、圆角 10px、置顶、跳过任务栏、不可缩放；拖拽用 CSS `app-region: drag`，交互元素 `no-drag`。
 - **热键语法**：`F2`、`Ctrl+Shift+A`、`Win+Alt+9`、`F13` 等；支持修饰键 Ctrl / Alt / Shift / Win(Cmd)，大小写与空格不敏感。注册失败（被占用）会给出明确错误。
 
@@ -85,3 +116,12 @@ npm run tauri build         # 打包安装包
 
 - **Rust 单元测试**（`cargo test`）：热键解析（大小写/空白/非法输入/修饰键组合/F1–F24）、设置读写（默认值、JSON 回读、缺失/损坏文件回退、camelCase 字段解析）、坐标文本格式化（正/负/零）。
 - **前端测试**（`npm test`）：坐标格式化工具、组件渲染（坐标来自 `get_cursor_pos`）、`copy-done` 事件触发「已复制 ✓」、设置弹层读写热键、退出按钮。
+
+---
+
+<div align="center">
+
+**License**：MIT（自行选用，无限制）  
+**Author**：c66-m
+
+</div>
